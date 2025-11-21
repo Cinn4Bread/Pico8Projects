@@ -1,7 +1,16 @@
-
 -- globals
-x = x or 63
-y = y or 63
+x = 63
+y = 63
+aX = 63 
+aY = 63
+bX = 63
+bY = 63
+
+follow_frames_1 = 10
+follow_frames_2 = 20
+
+history = {}
+max_frames = 30
 
 local colors = {
   black = 0,
@@ -25,25 +34,47 @@ local colors = {
 player = {
     x = 64,
     y = 64,
-    radius = 5
+    radius = 5,
+    speed = 1
 }
 
-function _init()
+function _update60()
+add(history, {x=player.x, y=player.y})
+if(#history > max_frames) then del(history, history[1]) end
+
+if(#history > follow_frames_1) then
+aX = history[#history-follow_frames_1].x
+aY = history[#history-follow_frames_1].y
 end
 
-function _update60()
-   
-   if (btn(0)) then player.x=player.x-1.5 end
-   if (btn(1)) then player.x=player.x+1.5 end
-   if (btn(2)) then player.y=player.y-1.5 end
-   if (btn(3)) then player.y=player.y+1.5 end
+if(#history > follow_frames_2) then
+bX = history[#history-follow_frames_2].x
+bY = history[#history-follow_frames_2].y
+end
 
-   player.x = mid(0, player.x, 128)
-   player.y = mid(0, player.y, 128)
-   
+local pX = 0
+local pY = 0
+
+if(btn(0)) then pX -= 1.5 end
+if(btn(1)) then pX += 1.5 end
+if(btn(2)) then pY -= 1.5 end
+if(btn(3)) then pY += 1.5 end
+
+if(pX != 0 and pY != 0) then
+pX *= 0.7
+pY *= 0.7
+end
+
+player.x += pX * player.speed
+player.y += pY * player.speed
+
+player.x = mid(0, player.x, 128)
+player.y = mid(0, player.y, 128) 
 end
 
 function _draw()
-    cls(colors.brown)
+    cls(colors.white)
+    circfill(bX, bY, player.radius, colors.blue)
+    circfill(aX, aY, player.radius, colors.green)
     circfill(player.x, player.y, player.radius, colors.red)
 end
