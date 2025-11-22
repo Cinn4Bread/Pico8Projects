@@ -36,6 +36,9 @@ ball = {
 
 -- 8 direction movement (normalized)
 function paddleMove()
+preCollideX = paddle.x;
+preCollideY = paddle.y;
+
 local pX = 0
 local pY = 0
 
@@ -54,6 +57,30 @@ paddle.y += pY * paddle.speed
 
 paddle.x = mid(12, paddle.x, 116)
 paddle.y = mid(0, paddle.y, 123) 
+
+if(collision(paddle, ball)) then 
+paddle.x = preCollideX;
+paddle.y = preCollideY;
+end
+end
+
+function collision(player,other)
+local player_left = player.x - 12
+local player_top = player.y - 1
+local player_right = player.x + 12
+local player_bottom = player.y + 4
+
+local other_left = other.x - 2
+local other_top = other.y - 2
+local other_right = other.x + 2
+local other_bottom = other.y + 2
+
+if(player_top > other_bottom) then return false end 
+if(other_top > player_bottom) then return false end
+if(player_left > other_right) then return false end
+if(other_left > player_right) then return false end
+
+return true
 end
 
 -- updates 60 frames per sec
