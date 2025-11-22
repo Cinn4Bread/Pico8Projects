@@ -70,10 +70,10 @@ local player_top = player.y - 1
 local player_right = player.x + 12
 local player_bottom = player.y + 4
 
-local other_left = other.x - 2
-local other_top = other.y - 2
-local other_right = other.x + 2
-local other_bottom = other.y + 2
+local other_left = other.x - 3
+local other_top = other.y - 3
+local other_right = other.x + 3
+local other_bottom = other.y + 3
 
 if(player_top > other_bottom) then return false end 
 if(other_top > player_bottom) then return false end
