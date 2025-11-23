@@ -34,14 +34,14 @@ paddle = {
     spr3 = 3,
     -- paddle base speed, acceleration, and friction
     speed = 1,
-    accel = 0.6,
-    friction = .85
+    accel = 0.5,
+    friction = .7
 }
 
 ball = {
     -- ball coordinates
     x = 63,
-    y = 85,
+    y = 87,
     -- ball sprite
     spr = 4, 
     -- ball speed (unused for now, no ball movement yet)
@@ -92,7 +92,7 @@ paddle.y += paddle.vY * paddle.speed
 
 -- clamp paddle movement to screen
 paddle.x = mid(12, paddle.x, 116)
-paddle.y = mid(0, paddle.y, 123) 
+paddle.y = mid(3, paddle.y, 125) 
 
 -- collision, lots of math
 -- don't be intimidated by the amount of comments, lol
@@ -113,18 +113,18 @@ local dY = paddle.y - ball.y
 -- if paddle.vY is positive, paddle is moving down
 
 -- calculate how much overlap on each axis
--- for overlapX, the 16 comes from the half-widths (in pixels) of the paddle and ball added together (12 + 4 = 16)
+-- for overlapX, the 15 comes from the half-widths (in pixels) of the paddle and ball added together (12 + 3 = 15)
 -- we get the absolute value (abs) of dX to get the amount of pixels apart their centers are
--- and finally, 16 minus abs(dX) equals the amount of overlap in pixels on the X-axis
+-- and finally, 15 minus abs(dX) equals the amount of overlap in pixels on the X-axis
 
-local overlapX = 16 - abs(dX)
+local overlapX = 15 - abs(dX)
 
 -- same logic for overlapY, so:
--- half-heights of both sprites (4 + 4 = 8)
+-- half-heights of both sprites (4 + 3 = 7)
 -- the amount of pixels apart the two centers are (abs(dY))
--- finally, 8 minus abs(dY) equals the amount of overlap in pixels on the Y-axis
+-- finally, 7 minus abs(dY) equals the amount of overlap in pixels on the Y-axis
 
-local overlapY = 8 - abs(dY)
+local overlapY = 7 - abs(dY)
 
 -- now, we check if the overlap on the X-axis is less than the overlap on the Y-axis
 -- whichever axis has the smaller overlap is the one actually colliding with the other object (in this case, the ball)
@@ -171,15 +171,15 @@ function collision(player,other)
 -- left edge, top edge, right edge, and bottom edge
 -- calculated from the paddle's pivot point to match the offsets placed on the sprites (so the hitbox is properly centered)
 local player_left = player.x - 12
-local player_top = player.y - 4
+local player_top = player.y - 3
 local player_right = player.x + 12
-local player_bottom = player.y + 4
+local player_bottom = player.y + 3
 
 -- same thing here, just for the ball sprite
-local other_left = other.x - 4
-local other_top = other.y - 4
-local other_right = other.x + 4
-local other_bottom = other.y + 4
+local other_left = other.x - 3
+local other_top = other.y - 3
+local other_right = other.x + 3
+local other_bottom = other.y + 3
 
 -- if any of the paddle's edges don't intersect with any of the ball's edges, no collision 
 if(player_top > other_bottom) then return false end 
