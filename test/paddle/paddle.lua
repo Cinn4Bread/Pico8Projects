@@ -94,7 +94,7 @@ paddle.y += paddle.vY * paddle.speed
 paddle.x = mid(12, paddle.x, 116)
 paddle.y = mid(3, paddle.y, 125) 
 
--- collision, lots of math
+-- collision handling, lots of math
 -- don't be intimidated by the amount of comments, lol
 if(collision(paddle, ball)) then
 
@@ -144,9 +144,8 @@ if dX > 0 and paddle.vX < 0 then
 paddle.vX = 0 
 paddle.x = preCollideX -- snap paddle.x back to previous position to prevent visual overlap
 end
-
--- same thing but for when the overlap on the Y-axis is smaller than the X-axis 
-else 
+ 
+else -- same thing but for when the overlap on the Y-axis is smaller than the X-axis
 
 -- if dY is negative (above ball) and paddle.vY is positive (moving down), stop Y-axis velocity
 if dY < 0 and paddle.vY > 0 then 
@@ -159,6 +158,7 @@ if dY > 0 and paddle.vY < 0 then
 paddle.vY = 0 
 paddle.y = preCollideY -- snap paddle.y back to previous position to prevent visual overlap
 end
+
 end
 end
 end
