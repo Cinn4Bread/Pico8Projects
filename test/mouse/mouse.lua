@@ -5,6 +5,8 @@ mouse = {
     y = stat(33),
     button = stat(34),
     dragging = false,
+    clickedSingle = false,
+    clickedSelected = false,
     movingMines = false
 }
 
@@ -18,8 +20,8 @@ function _init()
 
     for i = 1, 5 do
         add(mineList, {
-            x = flr(rnd(120)),
-            y = flr(rnd(120)),
+            x = mid(28, flr(rnd(100)), 100),
+            y = mid(28, flr(rnd(100)), 100),
             spr = 3, -- selected sprite is 4
             selected = false
             })
@@ -67,7 +69,7 @@ function drawMines(m)
     spr(m.spr, m.x, m.y + yOffset)
 end
 
-function pointInMine(m)
+function mouseTouchingMine(m)
     return mouse.x >= m.x and mouse.x <= m.x + 5 and mouse.y >= m.y and mouse.y <= m.y + 5
 end
 
@@ -76,11 +78,12 @@ function _update60()
     mouse.y = stat(33)
     mouse.button = stat(34) 
 
+    -- check if clicking on selected mine
     if mouse.button == 1 and not mouse.dragging and not mouse.movingMines then
-        local clickedSelected = false
+        mouse.clickedSelected = false
         for m in all(selectedMines) do
-            if(pointInMine(m)) then
-                clickedSelected = true
+            if(mouseTouchingMine(m)) then
+                mouse.clickedSelected = true
                 mouse.movingMines = true
                 mouse.dragStartX = mouse.x
                 mouse.dragStartY = mouse.y
@@ -88,23 +91,54 @@ function _update60()
                     mine.dragStartX = mine.x
                     mine.dragStartY = mine.y
                 end
-                break
+                return
             end
         end
         
-        if not clickedSelected then
+        -- if not clicking selected mine, check every mine to see which one was clicked
+        if not mouse.clickedSelected then
+            mouse.clickedSingle = false
+            for m in all(mineList) do
+                if(mouseTouchingMine(m)) then
+                    for k in all(selectedMines) do
+                        k.selected = false
+                        k.spr = 3
+                    end
+                    selectedMines = {}
+                    add(selectedMines, m)
+                    m.selected = true
+                    mouse.clickedSingle = true
+                    mouse.movingMines = true
+                    mouse.dragStartX = mouse.x
+                    mouse.dragStartY = mouse.y
+                    m.dragStartX = m.x
+                    m.dragStartY = m.y
+                    return
+                end
+            end
+        end
+
+        -- if no mine was clicked, start bounding box
+        if not mouse.clickedSingle and not mouse.clickedSelected then
             initMouseX = mouse.x
             initMouseY = mouse.y
             mouse.dragging = true
+            foreach(mineList, checkMines)
         end
-            
-    elseif mouse.button == 0 and mouse.dragging then
+
+    elseif mouse.button == 1 and mouse.dragging then
         selectedMines = {}
         foreach(mineList, checkMines)
+
+    elseif mouse.button == 0 and mouse.dragging then
         mouse.dragging = false
 
     elseif mouse.button == 0 and mouse.movingMines then
         mouse.movingMines = false
+        if mouse.clickedSingle then
+            selectedMines = {}
+            foreach(mineList, checkMines)
+        end
     end
 
     if mouse.movingMines then
@@ -118,14 +152,14 @@ function _update60()
 end
 
 function _draw()
-    cls(6)
+    cls()
     foreach(mineList, drawMines)
     
-    if mouse.dragging then
+    if mouse.dragging and not mouse.clickedSingle then
     	rect(initMouseX, initMouseY, mouse.x, mouse.y, 1)
-        spr(mouse.sprClick, mouse.x, mouse.y)
+        spr(mouse.sprClick, mouse.x - 1, mouse.y)
     else
-        spr(mouse.sprNormal, mouse.x, mouse.y)
+        spr(mouse.sprNormal, mouse.x - 1, mouse.y)
     end
 
     local selectedCount = 0
@@ -133,6 +167,6 @@ function _draw()
         if m.selected then selectedCount += 1 end
     end
 
-    print("mines selected", 6, 6, 0)
-    print(selectedCount, 6, 16, 0)
+    print("mines selected", 6, 6, 6)
+    print(selectedCount, 6, 16, 6)
 end
