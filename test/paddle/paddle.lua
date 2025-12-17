@@ -16,178 +16,228 @@ paddle = {
     spr3 = 3,
     -- paddle base speed, acceleration, and friction
     speed = 1,
-    accel = 0.5,
-    friction = .7
+    accel = 0.2,
+    friction = .2
 }
 
 ball = {
     -- ball coordinates
     x = 63,
     y = 87,
-
+    -- ball velocity
     vX = -1,
     vY = 1,
     -- ball sprite
     spr = 4, 
-    -- ball speed (unused for now, no ball movement yet)
+    -- ball speed, accel
     speed = 1,
     acceleration = 0.5,
+    -- collision cooldown
+    collisionTimer = 0,
+    collisionCD = 2
 }
 
 function ballMove()
 
-ball.x += ball.vX * ball.speed
-ball.y += ball.vY * ball.speed
+    ball.x += ball.vX * ball.speed
+    ball.y += ball.vY * ball.speed
 
-if ball.x < 3 then ball.vX = -ball.vX end
-if ball.y < 3 then ball.vY = -ball.vY end
-if ball.x > 125 then ball.vX = -ball.vX end
-if ball.y > 125 then ball.vY = -ball.vY end
+    if ball.x < 3 then ball.vX = -ball.vX end
+    if ball.y < 3 then ball.vY = -ball.vY end
+    if ball.x > 125 then ball.vX = -ball.vX end
+    if ball.y > 125 then ball.vY = -ball.vY end
+
+    -- clamp ball to screen
+    ball.x = mid(3, ball.x, 125)
+    ball.y = mid(3, ball.y, 125)
 
 end
 
 -- 8 direction movement (normalized)
 function paddleMove()
 
--- previous point in space before collision, used later
-local preCollideX = paddle.x;
-local preCollideY = paddle.y;
+    -- previous point in space before collision, used later
+    local preCollideX = paddle.x;
+    local preCollideY = paddle.y;
 
--- target velocity
-local targetVX = 0
-local targetVY = 0
+    -- target velocity
+    local targetVX = 0
+    local targetVY = 0
 
--- read input and update target velocity
-if(btn(0)) then targetVX -= 1.7 end
-if(btn(1)) then targetVX += 1.7 end
-if(btn(2)) then targetVY -= 1.7 end
-if(btn(3)) then targetVY += 1.7 end
+    -- read input and update target velocity
+    if(btn(0)) then targetVX -= 1.5 end
+    if(btn(1)) then targetVX += 1.5 end
+    if(btn(2)) then targetVY -= 1.5 end
+    if(btn(3)) then targetVY += 1.5 end
 
--- normalize diagonal speed if the target x and y values are both being changed (moving diagonally)
--- because of pythagorean's theorem, moving diagonally would normally mean you'd move 1.4x faster
--- multiplying the target velocity x and y by 0.7 (roughly 1/sqrt(2)) keeps diagonal speed equal to cardinal movement
-if(targetVX != 0 and targetVY != 0) then
-targetVX *= 0.7
-targetVY *= 0.7
-end
+    -- normalize diagonal speed if the target x and y values are both being changed (moving diagonally)
+    -- because of pythagorean's theorem, moving diagonally would normally mean you'd move 1.4x faster
+    -- multiplying the target velocity x and y by 0.7 (roughly 1/sqrt(2)) keeps diagonal speed equal to cardinal movement
+    if(targetVX != 0 and targetVY != 0) then
+        targetVX *= 0.7
+        targetVY *= 0.7
+    end
 
--- smoothly ramp up actual velocity values to match targets
--- say targetVX was 1.7, paddle.vX was 0 and accel was 0.3
--- targetVX - paddle.vX calculates the "distance" between the target velocity and the current velocity
--- every frame, this value is multiplied by accel (0.3) to get a smaller "step" (value) towards the target 
--- that smaller step is what is then added to the paddle's actual velocity, which results in a smooth ramping up of velocity over time
-paddle.vX += (targetVX - paddle.vX) * paddle.accel
-paddle.vY += (targetVY - paddle.vY) * paddle.accel
+    -- smoothly ramp up actual velocity values to match targets
+    -- say targetVX was 1.7, paddle.vX was 0 and accel was 0.3
+    -- targetVX - paddle.vX calculates the "distance" between the target velocity and the current velocity
+    -- every frame, this value is multiplied by accel (0.3) to get a smaller "step" (value) towards the target 
+    -- that smaller step is what is then added to the paddle's actual velocity, which results in a smooth ramping up of velocity over time
+    paddle.vX += (targetVX - paddle.vX) * paddle.accel
+    paddle.vY += (targetVY - paddle.vY) * paddle.accel
 
--- apply friction to slow the paddle down if no input
--- paddle velocity is multiplied by friction every frame (small value, 0.85 to start) which gradually decreases both until they're basically zero
-if targetVX == 0 then paddle.vX *= paddle.friction end
-if targetVY == 0 then paddle.vY *= paddle.friction end
+    -- apply friction to slow the paddle down if no input
+    -- paddle velocity is multiplied by friction every frame (small value, 0.85 to start) which gradually decreases both until they're basically zero
+    if targetVX == 0 then paddle.vX *= paddle.friction end
+    if targetVY == 0 then paddle.vY *= paddle.friction end
 
--- apply movement to paddle coordinates using calculated velocity values times base speed
-paddle.x += paddle.vX * paddle.speed
-paddle.y += paddle.vY * paddle.speed
+    -- apply movement to paddle coordinates using calculated velocity values times base speed
+    paddle.x += paddle.vX * paddle.speed
+    paddle.y += paddle.vY * paddle.speed
 
--- clamp paddle movement to screen
-paddle.x = mid(12, paddle.x, 116)
-paddle.y = mid(3, paddle.y, 125)
+    -- clamp paddle movement to screen
+    paddle.x = mid(12, paddle.x, 116)
+    paddle.y = mid(3, paddle.y, 125)
 
--- collision handling, lots of math
--- don't be intimidated by the amount of comments, lol
-if(collision(paddle, ball)) then
+    -- collision handling
+    if(collision(paddle, ball)) then
 
--- if dX is negative, paddle is to the left of ball
--- if dX is positive, paddle is to the right of ball
--- if dY is negative, paddle is above the ball
--- if dY is positive, paddle is below the ball
+        -- if dX is negative, paddle is to the left of ball
+        -- if dX is positive, paddle is to the right of ball
+        -- if dY is negative, paddle is above the ball
+        -- if dY is positive, paddle is below the ball
 
-local dX = paddle.x - ball.x
-local dY = paddle.y - ball.y  
+        local dX = paddle.x - ball.x
+        local dY = paddle.y - ball.y  
 
--- same idea applies to paddle velocity
--- if paddle.vX is negative, paddle is moving left
--- if paddle.vX is positive, paddle is moving right
--- if paddle.vY is negative, paddle is moving up
--- if paddle.vY is positive, paddle is moving down
+        -- same idea applies to paddle velocity
+        -- if paddle.vX is negative, paddle is moving left
+        -- if paddle.vX is positive, paddle is moving right
+        -- if paddle.vY is negative, paddle is moving up
+        -- if paddle.vY is positive, paddle is moving down
 
--- calculate how much overlap on each axis
--- for overlapX, the 15 comes from the half-widths (in pixels) of the paddle and ball added together (12 + 3 = 15)
--- we get the absolute value (abs) of dX to get the amount of pixels apart their centers are
--- and finally, 15 minus abs(dX) equals the amount of overlap in pixels on the X-axis
+        -- calculate how much overlap on each axis
+        -- for overlapX, the 15 comes from the half-widths (in pixels) of the paddle and ball added together (12 + 3 = 15)
+        -- we get the absolute value (abs) of dX to get the amount of pixels apart their centers are
+        -- and finally, 15 minus abs(dX) equals the amount of overlap in pixels on the X-axis
 
-local overlapX = 15 - abs(dX)
+        local overlapX = 15 - abs(dX)
 
--- same logic for overlapY, so:
--- half-heights of both sprites (4 + 3 = 7)
--- the amount of pixels apart the two centers are (abs(dY))
--- finally, 7 minus abs(dY) equals the amount of overlap in pixels on the Y-axis
+        -- same logic for overlapY, so:
+        -- half-heights of both sprites (4 + 3 = 7)
+        -- the amount of pixels apart the two centers are (abs(dY))
+        -- finally, 7 minus abs(dY) equals the amount of overlap in pixels on the Y-axis
 
-local overlapY = 7 - abs(dY)
+        local overlapY = 7 - abs(dY)
 
--- now, we check if the overlap on the X-axis is less than the overlap on the Y-axis
--- whichever axis has the smaller overlap is the one actually colliding with the other object (in this case, the ball)
--- separating the checks based on the difference in overlap allows the paddle to "slide" along the edge of an object while also holding towards it
--- without doing this, any of either the X-axis and Y-axis checks for stopping the paddle's velocity could both trigger at once, 
--- causing unnecessary stops in the paddle's movement when triggering just one of the checks on either axis would have been more appropriate
-if(overlapX < overlapY) then
+        -- now, we check if the overlap on the X-axis is less than the overlap on the Y-axis
+        -- whichever axis has the smaller overlap is the one actually colliding with the other object (in this case, the ball)
+        -- separating the checks based on the difference in overlap allows the paddle to "slide" along the edge of an object while also holding towards it
+        -- without doing this, any of either the X-axis and Y-axis checks for stopping the paddle's velocity could both trigger at once, 
+        -- causing unnecessary stops in the paddle's movement when triggering just one of the checks on either axis would have been more appropriate
+        if(overlapX < overlapY) then
 
--- if dX is negative (left of ball) and paddle.vX is positive (moving right), stop X-axis velocity
-if dX < 0 and paddle.vX > 0 then 
-paddle.vX = 0
-paddle.x = preCollideX -- snap paddle.x back to previous position to prevent visual overlap
-end
+            -- if dX is negative (left of ball) and paddle.vX is positive (moving right), stop X-axis velocity
+            if dX < 0 and paddle.vX > 0 then 
+                paddle.vX = 0
+                paddle.x = preCollideX -- snap paddle.x back to previous position to prevent visual overlap
+            end
 
--- if dX is positive (right of ball) and paddle.vX is negative (moving left), stop X-axis velocity
-if dX > 0 and paddle.vX < 0 then 
-paddle.vX = 0 
-paddle.x = preCollideX -- snap paddle.x back to previous position to prevent visual overlap
-end
+            -- if dX is positive (right of ball) and paddle.vX is negative (moving left), stop X-axis velocity
+            if dX > 0 and paddle.vX < 0 then 
+                paddle.vX = 0 
+                paddle.x = preCollideX -- snap paddle.x back to previous position to prevent visual overlap
+            end
  
-else -- same thing but for when the overlap on the Y-axis is smaller than the X-axis
+            else -- same thing but for when the overlap on the Y-axis is smaller than the X-axis
+            
+            -- if dY is negative (above ball) and paddle.vY is positive (moving down), stop Y-axis velocity
+            if dY < 0 and paddle.vY > 0 then 
+                paddle.vY = 0 
+                paddle.y = preCollideY -- snap paddle.y back to previous position to prevent visual overlap
+            end
 
--- if dY is negative (above ball) and paddle.vY is positive (moving down), stop Y-axis velocity
-if dY < 0 and paddle.vY > 0 then 
-paddle.vY = 0 
-paddle.y = preCollideY -- snap paddle.y back to previous position to prevent visual overlap
-end
-
--- if dY is positive (below ball) and paddle.vY is negative (moving up), stop Y-axis velocity
-if dY > 0 and paddle.vY < 0 then 
-paddle.vY = 0 
-paddle.y = preCollideY -- snap paddle.y back to previous position to prevent visual overlap
-end
-
-end
-end
+            -- if dY is positive (below ball) and paddle.vY is negative (moving up), stop Y-axis velocity
+            if dY > 0 and paddle.vY < 0 then 
+                paddle.vY = 0 
+                paddle.y = preCollideY -- snap paddle.y back to previous position to prevent visual overlap
+            end
+        end
+    end
 end
 
 -- AABB (axis-aligned bounding box) collision detection
 -- returns false if the edges of two hitboxes won't overlap, true otherwise
-function collision(player,other)
+function collision(player,ball)
 
--- these values define the hitbox of the paddle
--- left edge, top edge, right edge, and bottom edge
--- calculated from the paddle's pivot point to match the offsets placed on the sprites (so the hitbox is properly centered)
-local player_left = player.x - 12
-local player_top = player.y - 3
-local player_right = player.x + 12
-local player_bottom = player.y + 3
+    -- these values define the hitbox of the paddle
+    -- left edge, top edge, right edge, and bottom edge
+    -- calculated from the paddle's pivot point to match the offsets placed on the sprites (so the hitbox is properly centered)
+    local player_left = player.x - 12
+    local player_top = player.y - 3
+    local player_right = player.x + 12
+    local player_bottom = player.y + 3
+    
+    -- same thing here, just for the ball sprite
+    local ball_left = ball.x - 3
+    local ball_top = ball.y - 3
+    local ball_right = ball.x + 3
+    local ball_bottom = ball.y + 3
+    
+    -- if any of the paddle's edges don't intersect with any of the ball's edges, no collision 
+    if(player_top > ball_bottom) then return false end 
+    if(ball_top > player_bottom) then return false end
+    if(player_left > ball_right) then return false end
+    if(ball_left > player_right) then return false end
+    
+    ballCollision(player)
 
--- same thing here, just for the ball sprite
-local other_left = other.x - 3
-local other_top = other.y - 3
-local other_right = other.x + 3
-local other_bottom = other.y + 3
+    -- otherwise, collision
+    return true
+end
 
--- if any of the paddle's edges don't intersect with any of the ball's edges, no collision 
-if(player_top > other_bottom) then return false end 
-if(other_top > player_bottom) then return false end
-if(player_left > other_right) then return false end
-if(other_left > player_right) then return false end
+function ballCollision(player)
 
-ball.vX = -ball.vX
-ball.vY = -ball.vY
+    local player_left = player.x - 12
+    local player_top = player.y - 3
+    local player_right = player.x + 12
+    local player_bottom = player.y + 3
 
--- otherwise, collision
-return true
+    -- works similar to collision handling in paddleMove()
+    if ball.collisionTimer <= 0 then
+        
+        ball.vX = -ball.vX
+        ball.vY = -ball.vY
+
+        -- start cooldown timer
+        ball.collisionTimer = ball.collisionCD
+
+        local dX = ball.x - player.x
+        local dY = ball.y - player.y 
+
+        local overlapX = 15 - abs(dX)
+        local overlapY = 7 - abs(dY)
+
+        -- push ball away from paddle to prevent ball from phasing through it
+        if overlapX < overlapY then
+            if dX < 0 then 
+                ball.x = player_left - 2
+            else
+                ball.x = player_right + 2
+            end
+        else
+            if dY < 0 then
+                ball.y = player_top - 2
+            else
+                ball.y = player_bottom + 2
+            end
+        end
+    end
+end
+
+-- technically the collision handling in ballCollision already fixes the jitters but this is just here for edge cases
+function ballCollisionCDTimer()
+    if ball.collisionTimer > 0 then
+        ball.collisionTimer -= 1
+    end
 end
