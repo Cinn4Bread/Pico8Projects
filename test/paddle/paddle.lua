@@ -24,11 +24,22 @@ ball = {
     -- ball coordinates
     x = 63,
     y = 87,
+
+    vX = -1,
+    vY = 1,
     -- ball sprite
     spr = 4, 
     -- ball speed (unused for now, no ball movement yet)
-    speed = 1
+    speed = 1,
+    acceleration = 0.5,
 }
+
+function ballMove()
+
+ball.x += ball.vX * ball.speed
+ball.y += ball.vY * ball.speed
+
+end
 
 -- 8 direction movement (normalized)
 function paddleMove()
@@ -74,7 +85,7 @@ paddle.y += paddle.vY * paddle.speed
 
 -- clamp paddle movement to screen
 paddle.x = mid(12, paddle.x, 116)
-paddle.y = mid(3, paddle.y, 125) 
+paddle.y = mid(3, paddle.y, 125)
 
 -- collision handling, lots of math
 -- don't be intimidated by the amount of comments, lol

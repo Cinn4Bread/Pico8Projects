@@ -28,6 +28,7 @@ __lua__
 function _update60() 
     updateBricks()
     paddleMove()
+    ballMove()
     
     if frameCount % 180 == 1 then
         spawnBrickWave()
