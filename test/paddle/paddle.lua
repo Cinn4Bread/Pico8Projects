@@ -185,6 +185,9 @@ if(other_top > player_bottom) then return false end
 if(player_left > other_right) then return false end
 if(other_left > player_right) then return false end
 
+ball.vX = -ball.vX
+ball.vY = -ball.vY
+
 -- otherwise, collision
 return true
 end
