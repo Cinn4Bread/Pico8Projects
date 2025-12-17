@@ -39,6 +39,11 @@ function ballMove()
 ball.x += ball.vX * ball.speed
 ball.y += ball.vY * ball.speed
 
+if ball.x < 3 then ball.vX = -ball.vX end
+if ball.y < 3 then ball.vY = -ball.vY end
+if ball.x > 125 then ball.vX = -ball.vX end
+if ball.y > 125 then ball.vY = -ball.vY end
+
 end
 
 -- 8 direction movement (normalized)
