@@ -17,7 +17,10 @@ paddle = {
     -- paddle base speed, acceleration, and friction
     speed = 1,
     accel = 0.5,
-    friction = .7
+    friction = .7,
+    -- half widths/heights
+    halfWidth = 12,
+    halfHeight = 4
 }
 
 ball = {
@@ -27,7 +30,10 @@ ball = {
     -- ball sprite
     spr = 4, 
     -- ball speed (unused for now, no ball movement yet)
-    speed = 1
+    speed = 1,
+    -- half widths/heights
+    halfWidth = 3,
+    halfHeight = 2
 }
 
 -- 8 direction movement (normalized)
@@ -148,27 +154,26 @@ end
 -- AABB (axis-aligned bounding box) collision detection
 -- returns false if the edges of two hitboxes won't overlap, true otherwise
 function collision(player,other)
+    -- get collision edges
+    e1 = getEdges(player)
+    e2 = getEdges(other)
 
--- these values define the hitbox of the paddle
--- left edge, top edge, right edge, and bottom edge
--- calculated from the paddle's pivot point to match the offsets placed on the sprites (so the hitbox is properly centered)
-local player_left = player.x - 12
-local player_top = player.y - 3
-local player_right = player.x + 12
-local player_bottom = player.y + 3
+    -- if any of the paddle's edges don't intersect with any of the ball's edges, no collision 
+    if(e1.top > e2.bottom) then return false end 
+    if(e2.top > e1.bottom) then return false end
+    if(e1.left > e2.right) then return false end
+    if(e2.left > e1.right) then return false end
 
--- same thing here, just for the ball sprite
-local other_left = other.x - 3
-local other_top = other.y - 3
-local other_right = other.x + 3
-local other_bottom = other.y + 3
+    -- otherwise, collision
+    return true
+end
 
--- if any of the paddle's edges don't intersect with any of the ball's edges, no collision 
-if(player_top > other_bottom) then return false end 
-if(other_top > player_bottom) then return false end
-if(player_left > other_right) then return false end
-if(other_left > player_right) then return false end
-
--- otherwise, collision
-return true
+-- calculate an object's collision edges
+function getEdges(obj)
+    return {
+        left = obj.x - obj.halfWidth,
+        right = obj.x + obj.halfWidth,
+        top = obj.y - obj.halfHeight,
+        bottom = obj.y + obj.halfHeight
+    }
 end
