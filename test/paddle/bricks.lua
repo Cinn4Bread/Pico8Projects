@@ -15,7 +15,7 @@ function spawnBrickWave()
                 y = -4,
                 -- half widths/heights
                 halfWidth = 8,
-                halfHeight = 2,
+                halfHeight = 3,
                 -- if this brick is active
                 active = true
             }
@@ -31,7 +31,7 @@ function brickMove(other)
             brick.y += moveAmount
             -- check collision
             if brickCollision(brick, other) then
-                brickPush(brick, other)
+                handleBrickCollision(brick, other)
             end
             -- remove if off screen
             if brick.y > 128 then
@@ -62,7 +62,7 @@ function brickCollision(brick, other)
     return true
 end
 
-function brickPush(brick, other)
+function handleBrickCollision(brick, other)
     local dX = other.x - brick.x
     local dY = other.y - brick.y
     
