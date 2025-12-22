@@ -85,7 +85,6 @@ function handleBrickCollision(brick, other)
             -- brick center + brick half height = bottom edge
             -- bottom edge + paddle half height = paddle top edge pushed to brick bottom edge
             other.y = brick.y + brick.halfHeight + other.halfHeight
-            other.vY = 0 
         else
             other.y = brick.y - brick.halfHeight - other.halfHeight 
             other.vY = 0 
