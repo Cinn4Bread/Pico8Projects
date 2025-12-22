@@ -3,6 +3,7 @@ version 43
 __lua__
 #include paddle.lua
 #include bricks.lua
+#include Main_Menu.lua
 
 -- raw color values
 -- black = 0
@@ -25,8 +26,10 @@ __lua__
 -- worth noting: any code that needs to be run in these two functions (update60 and draw) have to be called in the main p8 file
 -- otherwise things break
 
-function _update60() 
-    brickMove(paddle)
+function _update60()
+    Update_Menu()
+    Update_Game() 
+    brickMove(paddle)   
     paddleMove()
     
     if frameCount % 180 == 1 then
@@ -35,29 +38,41 @@ function _update60()
     frameCount += 1 
 end
 
+function _init()
+    scene = "Menu"
+end
+
 function _draw() 
+    if scene == "Menu"
+        then
+        Draw_Menu()
+    end
+
     -- clears screen and sets background color
-    cls(5)
+    if scene == "Game"
+        then 
+            cls(5)
 
-    -- print paddle coordinates
-    print("paddle coords", 8, 10, 7)
-    print(paddle.x, 8, 18, 7)
-    print(paddle.y, 8, 26, 7)
-    -- message to confirm bricks.lua is working
-    print("brick.lua working", 8, 34, 7)
-    
-    -- draw player sprites
-    -- offset them so they center on the paddle's pivot point
-    spr(paddle.spr1, paddle.x - 12, paddle.y - 4)
-    spr(paddle.spr2, paddle.x - 4, paddle.y - 4)
-    spr(paddle.spr3, paddle.x + 4, paddle.y - 4)
-    
-    -- draw ball sprite
-    -- offset to center on pivot point, same as player sprites
-    spr(ball.spr, ball.x - 4, ball.y - 4)
+            -- print paddle coordinates
+            print("paddle coords", 8, 10, 7)
+            print(paddle.x, 8, 18, 7)
+            print(paddle.y, 8, 26, 7)
+            -- message to confirm bricks.lua is working
+            print("brick.lua working", 8, 34, 7)
+            
+            -- draw player sprites
+            -- offset them so they center on the paddle's pivot point
+            spr(paddle.spr1, paddle.x - 12, paddle.y - 4)
+            spr(paddle.spr2, paddle.x - 4, paddle.y - 4)
+            spr(paddle.spr3, paddle.x + 4, paddle.y - 4)
+            
+            -- draw ball sprite
+            -- offset to center on pivot point, same as player sprites
+            spr(ball.spr, ball.x - 4, ball.y - 4)
 
-    -- draw bricks
-    drawBricks()
+            -- draw bricks
+            drawBricks()
+    end
 end
 
 __gfx__
