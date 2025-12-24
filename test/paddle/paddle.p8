@@ -31,11 +31,16 @@ function _update60()
     Update_Game() 
     brickMove(paddle)   
     paddleMove()
+    ballMove()
     
+    -- wait 3 seconds before spawning each wave
     if frameCount % 180 == 1 then
         spawnBrickWave()
     end
     frameCount += 1 
+
+    -- ball collision cooldown timer
+    ballCollisionCDTimer()
 end
 
 function _init()
