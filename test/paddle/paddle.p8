@@ -40,11 +40,11 @@ end
 
 function _init()
     scene = "Menu"
+    music(1)
 end
 
 function _draw() 
-    if scene == "Menu"
-        then
+    if scene == "Menu" then
         Draw_Menu()
     end
 

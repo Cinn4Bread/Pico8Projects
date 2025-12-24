@@ -13,32 +13,24 @@ function _init()
 end
 
 function _update60()
+    updateMouseValues()
     mineInteraction()
     spawnGreyMines()
     spawnBlueMines()
     spawnRedMines()
-    gameFrameCount += 1
+    if not(gameFrameCount >= redThreshold) then
+        gameFrameCount += 1
+    end
 end
 
 function _draw()
     cls()
+    print(selectedCount, 6, 6, 6)
+    print(gameFrameCount, 6, 16, 6)
+    drawContainers()
     foreach(mineList, drawMines)
-    
-    if mouse.dragging and not mouse.clickedSingle then
-    	rect(initMouseX, initMouseY, mouse.x, mouse.y, 7)
-        spr(mouse.sprClick, mouse.x - 1, mouse.y)
-    else
-        spr(mouse.sprNormal, mouse.x - 1, mouse.y)
-    end
-
-    local selectedCount = 0
-    for m in all(mineList) do
-        if m.selected then selectedCount += 1 end
-    end
-
-    print("mines selected", 6, 6, 6)
-    print(selectedCount, 6, 16, 6)
-    print(gameFrameCount, 6, 26, 6 )
+    drawMouse()
+    updateMineState()
 end
 
 __gfx__

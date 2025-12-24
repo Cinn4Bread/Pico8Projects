@@ -31,8 +31,16 @@ function checkMines(m)
     end
 end
 
+function updateMineState()
+    selectedCount = 0
+    for m in all(mineList) do
+        if m.selected then selectedCount += 1 end
+    end
+end
+
 -- draw mine
--- if the mine is currently selected and the player is moving mines, apply y-offset of 2 pixels to imitate "floating" behavior 
+-- if the mine is currently selected and the player is moving mines, 
+-- apply y-offset of 2 pixels to imitate "floating" behavior 
 function drawMines(m)
     local yOffset = 0
     if m.selected and mouse.movingMines == true then

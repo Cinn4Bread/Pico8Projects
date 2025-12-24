@@ -34,22 +34,24 @@ function boundingCol(mine)
 end
 
 -- check if mouse is touching the given sprite
-function mouseTouchingMine(m)
+function mouseTouchingObj(m)
     return mouse.x >= m.x and mouse.x <= m.x + 5 and mouse.y >= m.y and mouse.y <= m.y + 5
 end
 
-function mineInteraction()
-
+function updateMouseValues()
     -- stat(32) and stat(33) return the mouse's x and y values, and stat(34) returns a 0-1 value controlled by LMB
     mouse.x = stat(32)
     mouse.y = stat(33)
     mouse.button = stat(34) 
+end
+
+function mineInteraction()
 
     -- check if clicking on selected mine
     if mouse.button == 1 and not mouse.dragging and not mouse.movingMines then
         mouse.clickedSelected = false
         for m in all(selectedMines) do
-            if(mouseTouchingMine(m)) then
+            if(mouseTouchingObj(m)) then
                 mouse.clickedSelected = true
                 mouse.movingMines = true
                 mouse.dragStartX = mouse.x
@@ -66,7 +68,7 @@ function mineInteraction()
         if not mouse.clickedSelected then
             mouse.clickedSingle = false
             for m in all(mineList) do
-                if(mouseTouchingMine(m)) then
+                if(mouseTouchingObj(m)) then
                     for k in all(selectedMines) do
                         k.selected = false
                         k.spr = 3
@@ -122,5 +124,14 @@ function mineInteraction()
             m.x = m.dragStartX + deltaX
             m.y = m.dragStartY + deltaY
         end
+    end
+end
+
+function drawMouse()
+    if mouse.dragging and not mouse.clickedSingle then
+    	rect(initMouseX, initMouseY, mouse.x, mouse.y, 7)
+        spr(mouse.sprClick, mouse.x - 1, mouse.y)
+    else
+        spr(mouse.sprNormal, mouse.x - 1, mouse.y)
     end
 end

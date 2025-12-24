@@ -89,7 +89,7 @@ function paddleMove()
     paddle.x = mid(12, paddle.x, 116)
     paddle.y = mid(3, paddle.y, 125) 
 
-    -- collision handling, lots of math
+    -- collision handling
     if(collision(paddle, ball)) then
         handlePaddleCollision(paddle, ball)
     end
