@@ -1,7 +1,38 @@
 pico-8 cartridge // http://www.pico-8.com
 version 43
 __lua__
+#include containers.lua
 #include mouse.lua
+#include mines.lua
+
+function _init()
+    -- enables the mouse during gameplay
+    poke(0x5f2d, 1)
+    initMouseX = 0
+    initMouseY = 0
+end
+
+function _update60()
+    updateMouseValues()
+    mineInteraction()
+    spawnGreyMines()
+    spawnBlueMines()
+    spawnRedMines()
+    if not(gameFrameCount >= redThreshold) then
+        gameFrameCount += 1
+    end
+end
+
+function _draw()
+    cls()
+    print(selectedCount, 6, 6, 6)
+    print(gameFrameCount, 6, 16, 6)
+    drawContainers()
+    foreach(mineList, drawMines)
+    drawMouse()
+    updateMineState()
+end
+
 __gfx__
 0000000001100000077000000000000000000000000000000000000000000000000000000dddddd0000000000111111000000000022222200000000000000000
 00000000017100000717000006000060060000600c0000c00c0000c00800008008000080d666666d000000001cccccc100000000288888820000000000000000

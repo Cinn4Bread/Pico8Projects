@@ -10,27 +10,6 @@ mouse = {
     movingMines = false
 }
 
-mineList = {}
-selectedMines = {}
-
-function _init()
-
-    -- enables the mouse during gameplay
-    poke(0x5f2d, 1)
-    initMouseX = 0
-    initMouseY = 0
-
-    -- generate 5 mines in random locations on screen (clamped within range)
-    for i = 1, 5 do
-        add(mineList, {
-            x = mid(28, flr(rnd(100)), 100),
-            y = mid(28, flr(rnd(100)), 100),
-            spr = 3, -- selected sprite is 4
-            selected = false
-            })
-    end
-end
-
 -- AABB collision detection between the bounding box and the mines
 function boundingCol(mine)
     if mouse.dragging then
@@ -54,44 +33,25 @@ function boundingCol(mine)
     end
 end
 
-function checkMines(m)
-    if boundingCol(m) == true then
-        m.selected = true
-        m.spr = 4
-        add(selectedMines, m)
-    else
-        m.selected = false
-        m.spr = 3
-    end
-end
-
--- draw mine
--- if the mine is currently selected and the player is moving mines, apply y-offset of 2 pixels to imitate "floating" behavior 
-function drawMines(m)
-    local yOffset = 0
-    if m.selected and mouse.movingMines == true then
-        yOffset -= 2
-    end
-    spr(m.spr, m.x, m.y + yOffset)
-end
-
 -- check if mouse is touching the given sprite
-function mouseTouchingMine(m)
+function mouseTouchingObj(m)
     return mouse.x >= m.x and mouse.x <= m.x + 5 and mouse.y >= m.y and mouse.y <= m.y + 5
 end
 
-function _update60()
-
+function updateMouseValues()
     -- stat(32) and stat(33) return the mouse's x and y values, and stat(34) returns a 0-1 value controlled by LMB
     mouse.x = stat(32)
     mouse.y = stat(33)
     mouse.button = stat(34) 
+end
+
+function mineInteraction()
 
     -- check if clicking on selected mine
     if mouse.button == 1 and not mouse.dragging and not mouse.movingMines then
         mouse.clickedSelected = false
         for m in all(selectedMines) do
-            if(mouseTouchingMine(m)) then
+            if(mouseTouchingObj(m)) then
                 mouse.clickedSelected = true
                 mouse.movingMines = true
                 mouse.dragStartX = mouse.x
@@ -108,7 +68,7 @@ function _update60()
         if not mouse.clickedSelected then
             mouse.clickedSingle = false
             for m in all(mineList) do
-                if(mouseTouchingMine(m)) then
+                if(mouseTouchingObj(m)) then
                     for k in all(selectedMines) do
                         k.selected = false
                         k.spr = 3
@@ -147,8 +107,6 @@ function _update60()
     -- put down all mines being moved by player when they stop holding down LMB
     elseif mouse.button == 0 and mouse.movingMines then
         mouse.movingMines = false
-
-        -- 
         if mouse.clickedSingle then
             selectedMines = {}
             foreach(mineList, checkMines)
@@ -169,22 +127,11 @@ function _update60()
     end
 end
 
-function _draw()
-    cls()
-    foreach(mineList, drawMines)
-    
+function drawMouse()
     if mouse.dragging and not mouse.clickedSingle then
     	rect(initMouseX, initMouseY, mouse.x, mouse.y, 7)
         spr(mouse.sprClick, mouse.x - 1, mouse.y)
     else
         spr(mouse.sprNormal, mouse.x - 1, mouse.y)
     end
-
-    local selectedCount = 0
-    for m in all(mineList) do
-        if m.selected then selectedCount += 1 end
-    end
-
-    print("mines selected", 6, 6, 6)
-    print(selectedCount, 6, 16, 6)
 end
