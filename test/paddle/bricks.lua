@@ -24,14 +24,18 @@ function spawnBrickWave()
     end 
 end
 
-function brickMove(other)
+function brickMove(paddle, ball)
     for brick in all(bricks) do
         if brick.active then
             -- move brick down by moveAmount
             brick.y += moveAmount
             -- check collision
-            if brickCollision(brick, other) then
-                handleBrickCollision(brick, other)
+            if collisionCheck(brick, paddle) then
+                brickPaddleCollision(brick, paddle)
+            end
+            if collisionCheck(brick, ball) then
+                brickBallCollision(brick, ball)
+                break
             end
             -- remove if off screen
             if brick.y > 128 then
@@ -50,7 +54,7 @@ function getEdges(obj)
     }
 end
 
-function brickCollision(brick, other)
+function collisionCheck(brick, other)
     e1 = getEdges(brick)
     e2 = getEdges(other)
 
@@ -62,32 +66,64 @@ function brickCollision(brick, other)
     return true
 end
 
-function handleBrickCollision(brick, other)
-    local dX = other.x - brick.x
-    local dY = other.y - brick.y
+function brickPaddleCollision(brick, paddle)
+    local dX = paddle.x - brick.x
+    local dY = paddle.y - brick.y
     
-    local overlapX = (other.halfWidth + brick.halfWidth) - abs(dX) 
-    local overlapY = (other.halfHeight + brick.halfHeight) - abs(dY) 
+    local overlapX = (paddle.halfWidth + brick.halfWidth) - abs(dX) 
+    local overlapY = (paddle.halfHeight + brick.halfHeight) - abs(dY) 
 
     if overlapX < overlapY then
         if dX > 0 then
             -- calculate where to push the paddle to once collision
             -- brick center + brick half width = right edge
             -- right edge + paddle half width = paddle left edge pushed to brick right edge  
-            other.x = brick.x + brick.halfWidth + other.halfWidth 
-            other.vX = 0
+            paddle.x = brick.x + brick.halfWidth + paddle.halfWidth 
+            paddle.vX = 0
         else
-            other.x = brick.x - brick.halfWidth - other.halfWidth 
-            other.vX = 0
+            paddle.x = brick.x - brick.halfWidth - paddle.halfWidth 
+            paddle.vX = 0
         end
     else
         if dY > 0 then 
             -- brick center + brick half height = bottom edge
             -- bottom edge + paddle half height = paddle top edge pushed to brick bottom edge
-            other.y = brick.y + brick.halfHeight + other.halfHeight
+            paddle.y = brick.y + brick.halfHeight + paddle.halfHeight
         else
-            other.y = brick.y - brick.halfHeight - other.halfHeight 
-            other.vY = 0 
+            paddle.y = brick.y - brick.halfHeight - paddle.halfHeight 
+            paddle.vY = 0 
+        end
+    end
+end
+
+function brickBallCollision(brick, ball)
+    local dY = ball.y - brick.y
+    local dX = ball.x - brick.x
+    
+    local overlapX = (ball.halfWidth + brick.halfWidth) - abs(dX) 
+    local overlapY = (ball.halfHeight + brick.halfHeight) - abs(dY) 
+
+    if overlapX < overlapY then
+        ball.vX = -ball.vX
+        if dX > 0 then  
+            ball.x = brick.x + brick.halfWidth + ball.halfWidth 
+            del(bricks, brick)
+            return
+        else
+            ball.x = brick.x - brick.halfWidth - ball.halfWidth 
+            del(bricks, brick)
+            return
+        end
+    else
+        ball.vY = -ball.vY
+        if dY > 0 then 
+            ball.y = brick.y + brick.halfHeight + ball.halfHeight
+            del(bricks, brick)
+            return
+        else
+            ball.y = brick.y - brick.halfHeight - ball.halfHeight 
+            del(bricks, brick)
+            return
         end
     end
 end

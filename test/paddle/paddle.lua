@@ -11,7 +11,7 @@ paddle = {
     spr3 = 3,
     -- paddle move amount, base speed, acceleration, and velocity retention
     moveAmount = 1,
-    speed = 0.5,
+    speed = 0.35,
     accel = 0.3,
     velocityRetention = 0.8,
     -- half widths/heights (for collision)
@@ -22,44 +22,8 @@ paddle = {
     preCollideY = 0
 }
 
-ball = {
-    -- ball coordinates
-    x = 63,
-    y = 87,
-    -- ball velocity
-    vX = -1,
-    vY = 1,
-    -- ball sprite
-    spr = 4, 
-    -- ball speed, accel
-    speed = 1,
-    acceleration = 0.5,
-    -- half widths/heights (for collision)
-    halfWidth = 3,
-    halfHeight = 2,
-    -- collision cooldown
-    collisionTimer = 0,
-    collisionCD = 2
-}
-
-function ballMove()
-
-    ball.x += ball.vX * ball.speed
-    ball.y += ball.vY * ball.speed
-
-    if ball.x < 3 then ball.vX = -ball.vX end
-    if ball.y < 3 then ball.vY = -ball.vY end
-    if ball.x > 125 then ball.vX = -ball.vX end
-    if ball.y > 125 then ball.vY = -ball.vY end
-
-    -- clamp ball to screen
-    ball.x = mid(3, ball.x, 125)
-    ball.y = mid(3, ball.y, 125)
-
-end
-
 -- 8 direction movement (normalized)
-function paddleMove()
+function paddleMove(ball)
 
     -- previous point in space before collision, used later
     paddle.preCollideX = paddle.x;
@@ -108,15 +72,14 @@ function paddleMove()
     paddle.y = mid(3, paddle.y, 125) 
 
     -- collision handling with the ball
-    if(collision(paddle, ball)) then
+    if(collisionCheck(paddle, ball)) then
         handlePaddleCollision(paddle, ball)
-        handleBallCollision(paddle)
     end
 end
 
 -- AABB (axis-aligned bounding box) collision detection
 -- returns false if the edges of two hitboxes won't overlap, true otherwise
-function collision(paddle, ball)
+function collisionCheck(paddle, ball)
     -- get collision edges
     e1 = getEdges(paddle)
     e2 = getEdges(ball)
@@ -196,44 +159,6 @@ function handlePaddleCollision(paddle, ball)
     end
 end
 
--- modified this to match architecture of existing collision function 
-function handleBallCollision(paddle)
-
-    local paddleEdges = getEdges(paddle)
-
-    -- works similar to collision handling in paddleMove()
-    if ball.collisionTimer <= 0 then
-
-        -- start cooldown timer
-        ball.collisionTimer = ball.collisionCD
-
-        local dX = ball.x - paddle.x
-        local dY = ball.y - paddle.y 
-
-        local overlapX = (paddle.halfWidth + ball.halfWidth) - abs(dX)
-        local overlapY = (paddle.halfHeight + ball.halfHeight) - abs(dY)
-
-        -- push ball away from paddle to prevent ball from phasing through it
-        if overlapX < overlapY then
-            -- reverse ball x velocity when hitting paddle sides 
-            ball.vX = -ball.vX
-            if dX < 0 then 
-                ball.x = paddleEdges.left - ball.halfWidth
-            else
-                ball.x = paddleEdges.right + ball.halfWidth
-            end
-        else
-            -- reverse ball y velocity when hitting paddle top or bottom
-            ball.vY = -ball.vY
-            if dY < 0 then
-                ball.y = paddleEdges.top - ball.halfHeight
-            else
-                ball.y = paddleEdges.bottom + ball.halfHeight
-            end
-        end
-    end
-end
-
 -- calculate an object's collision edges
 function getEdges(obj)
     return {
@@ -244,11 +169,4 @@ function getEdges(obj)
         top = obj.y - obj.halfHeight,
         bottom = obj.y + obj.halfHeight
     }
-end
-
--- technically the collision handling in ballCollision already fixes the jitters but this is just here for edge cases
-function ballCollisionCDTimer()
-    if ball.collisionTimer > 0 then
-        ball.collisionTimer -= 1
-    end
 end

@@ -3,6 +3,7 @@ version 43
 __lua__
 #include paddle.lua
 #include bricks.lua
+#include ball.lua
 #include Main_Menu.lua
 
 -- raw color values
@@ -29,9 +30,9 @@ __lua__
 function _update60()
     Update_Menu()
     Update_Game() 
-    brickMove(paddle)   
-    paddleMove()
-    ballMove()
+    brickMove(paddle, ball)   
+    paddleMove(ball)
+    ballMove(paddle)
     
     -- wait 3 seconds before spawning each wave
     if frameCount % 180 == 1 then
